@@ -1,36 +1,8 @@
 import os
-import subprocess
+from pathlib import Path
 
-# Create index.html file
-index_html_content = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Image Caption Generator</title>
-</head>
-<body>
-    <h1>Image Caption Generator</h1>
-    <form action="/" method="POST" enctype="multipart/form-data">
-        <input type="file" name="image">
-        <input type="submit" value="Generate Caption">
-    </form>
-    {% if caption %}
-    <h2>Generated Caption:</h2>
-    <p>{{ caption }}</p>
-    {% if generation_message %}
-    <p>{{ generation_message }}</p>
-    {% endif %}
-    {% endif %}
-</body>
-</html>
-"""
-
-with open('index.html', 'w') as index_file:
-    index_file.write(index_html_content)
-
-# Create app.py file
-app_py_content = """
-from flask import Flask, request, jsonify
+# Step 1: Create app.py file and write the code
+app_code = """from flask import Flask, render_template, request, jsonify
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 import time
@@ -79,11 +51,7 @@ def index():
             caption = generate_caption(image)
             generation_message = f"Caption generated in {last_generation_time:.2f} seconds."
 
-    # Read index.html content from the same directory
-    with open('index.html', 'r') as index_file:
-        index_html = index_file.read()
-
-    return index_html.replace('{{ caption }}', caption).replace('{{ generation_message }}', generation_message)
+    return render_template('index.html', caption=caption, generation_message=generation_message)
 
 @app.route('/api/generate_caption', methods=['POST'])
 def generate_caption_api():
@@ -105,11 +73,53 @@ if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
 """
 
-with open('app.py', 'w') as app_file:
-    app_file.write(app_py_content)
+# Step 2: Create app.py file and write the code
+with open("app.py", "w") as f:
+    f.write(app_code)
+print("Created app.py")
 
-# Install required packages
-subprocess.run(['pip', 'install', 'Flask', 'Pillow', 'requests', 'transformers', 'torch', 'torchvision', 'torchaudio'])
+# Step 3: Create templates folder
+templates_folder = "templates"
+os.makedirs(templates_folder, exist_ok=True)
+print(f"Created {templates_folder} folder")
 
-# Run app.py
-os.system('python app.py')
+# Step 4: Create index.html file
+index_html = """<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Captioning</title>
+</head>
+<body>
+    <h1>Image Captioning</h1>
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image">
+        <button type="submit">Generate Caption</button>
+    </form>
+    <br>
+    <p>Caption: {{ caption }}</p>
+    <p>{{ generation_message }}</p>
+</body>
+</html>
+"""
+
+with open(os.path.join(templates_folder, "index.html"), "w") as f:
+    f.write(index_html)
+print("Created index.html")
+
+# Step 5: Install required packages
+required_packages = [
+    "Flask",
+    "Pillow",
+    "requests",
+    "transformers",
+    "torch",
+    "torchvision",
+    "torchaudio"
+]
+
+for package in required_packages:
+    os.system(f"pip install {package}")
+    print(f"Installed {package}")
+
+# Step 6: Run app.py
+os.system("python app.py")
